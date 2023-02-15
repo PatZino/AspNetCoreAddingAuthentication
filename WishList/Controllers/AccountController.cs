@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WishList.Models;
+using WishList.Models.AccountViewModels;
 
 namespace WishList.Controllers
 {
@@ -24,6 +25,39 @@ namespace WishList.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View("Register");
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("Register", model);
+            }
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email
+            };
+            var password = model.Password;
+            var createUser = _userManager.CreateAsync(user, password);
+            if (!createUser.Result.Succeeded)
+            {
+                foreach(var error in createUser.Result.Errors)
+                {
+                    ModelState.AddModelError("Password", error.Description);
+                    return View("Register", model);
+                }
+            }
+            return RedirectToAction("Index", "Home");
         }
     }
 }
